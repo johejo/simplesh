@@ -12,6 +12,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <values.h>
+#include <errno.h>
 
 #define LEN 999999
 #define READ 0

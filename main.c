@@ -9,12 +9,12 @@ int main() {
     char dir[256] = ".";
     char program_dir[PATH_MAX];
     
-    getcwd(program_dir, PATH_MAX);
-//    printf("%s\n", program_dir);
+    getcwd(program_dir, PATH_MAX); //save program dir
 
     while (1) {
         i = 0;
         printf("PROMPT>");
+        //get command
         while ((c = getchar()) != '\n') {
             tmp[i++] = (char) c;
             if (i >= LEN - 1) {
@@ -36,13 +36,14 @@ int main() {
             break;
         }
 
+        // 'cd' is special
         if (!strncmp(cmd, "cd", strlen("cd"))) {
-            if (opt == NULL) {
-                int n = chdir(program_dir);
+            if (opt == NULL) { // 'cd' only
+                chdir(program_dir);
                 strncpy(dir, program_dir, strlen(program_dir));
             }
-            else {
-                int n = chdir(opt);
+            else { // 'cd' [PATH]
+                chdir(opt);
                 strncpy(dir, opt, strlen(opt));
             }
         }
@@ -60,9 +61,6 @@ int main() {
         pid = fork();
         if (pid == 0) {
             //child
-//            printf("child %d\n", pid);
-//            printf("%s\n", option);
-
             close(pipe_p2c[WRITE]);
             close(pipe_c2p[READ]);
 
@@ -73,13 +71,13 @@ int main() {
             close(pipe_c2p[WRITE]);
 
             int check = 0;
-//            printf("%s\n", arg);
+            //cd is not binary
             if (!strncmp(cmd, "cd", strlen("cd"))) {
-                check = execlp("pwd", "pwd", NULL);
+                check = execlp("pwd", "pwd", NULL); // confirmation
             } else {
-                int n = chdir(dir);
-//                printf("dir %s\n\n", dir);
-                check = execlp(cmd, cmd, opt, NULL);
+//                printf("%s\n", opt);
+                chdir(opt);
+                check = execlp(cmd, cmd, opt, NULL); // exec command
             }
             if (check < 0) {
                 perror("error");
@@ -91,19 +89,19 @@ int main() {
             //parent
             close(pipe_p2c[READ]);
             close(pipe_c2p[WRITE]);
-            pid_t r = waitpid(pid, &status, 0); //子プロセスの終了待ち
+            pid_t r = waitpid(pid, &status, 0); //wait child
             if (r < 0) {
-                perror("waitpid");
+                perror("wait pid");
                 exit(-1);
             }
             if (WIFEXITED(status)) {
-                // 子プロセスが正常終了の場合
+                //child exit success
                 char buf[LEN];
                 memset(buf, '\0', LEN);
                 read(pipe_c2p[READ], buf, LEN);
                 write(1, buf, strlen(buf));
             } else {
-                printf("child status=%04x\n", status);
+                fprintf(stderr, "child status=%04x\n", status);
             }
         } else {
             //error
