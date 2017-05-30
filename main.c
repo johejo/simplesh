@@ -73,12 +73,12 @@ int main() {
             int check = 0;
             //cd is not binary
             if (!strncmp(cmd, "cd", strlen("cd"))) {
-                check = execlp("pwd", "pwd", NULL); // confirmation
+                check = execl("pwd", "pwd", NULL); // confirmation
             } else {
                 check = execlp(cmd, cmd, opt, NULL); // exec command
             }
             if (check < 0) {
-                perror("error");
+                perror("error!");
                 close(pipe_p2c[WRITE]);
                 close(pipe_c2p[READ]);
                 exit(1);
