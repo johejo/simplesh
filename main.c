@@ -75,8 +75,6 @@ int main() {
             if (!strncmp(cmd, "cd", strlen("cd"))) {
                 check = execlp("pwd", "pwd", NULL); // confirmation
             } else {
-//                printf("%s\n", opt);
-                chdir(opt);
                 check = execlp(cmd, cmd, opt, NULL); // exec command
             }
             if (check < 0) {
