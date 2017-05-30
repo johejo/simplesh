@@ -10,8 +10,10 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <string.h>
+#include <fcntl.h>
+#include <values.h>
 
-#define CMD_LEN 256
+#define LEN 999999
 #define READ 0
 #define WRITE 1
 
