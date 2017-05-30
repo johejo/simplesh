@@ -6,6 +6,11 @@ int main() {
     char tmp[LEN];
     int status;
     int pipe_c2p[2], pipe_p2c[2];
+    char dir[256] = ".";
+    char program_dir[PATH_MAX];
+    
+    getcwd(program_dir, PATH_MAX);
+//    printf("%s\n", program_dir);
 
     while (1) {
         i = 0;
@@ -17,26 +22,29 @@ int main() {
             }
         }
         tmp[i] = '\0';
-        char *arg = tmp;
         char cmd[] = "";
         strcpy(cmd, tmp);
         char *opt = strstr(cmd, " ");
         if (opt != NULL) {
             opt++;
-            printf("opt %s\n", opt);
         }
 
         int n = (int) strcspn(tmp, " ");
         cmd[n] = '\0';
 
-
-        printf("cmd %s\n", cmd);
-
-
-        printf("arg %s\n\n", arg);
-
         if (!strncmp("exit", tmp, LEN)) {
             break;
+        }
+
+        if (!strncmp(cmd, "cd", strlen("cd"))) {
+            if (opt == NULL) {
+                int n = chdir(program_dir);
+                strncpy(dir, program_dir, strlen(program_dir));
+            }
+            else {
+                int n = chdir(opt);
+                strncpy(dir, opt, strlen(opt));
+            }
         }
 
         if (pipe(pipe_c2p) < 0){
@@ -64,8 +72,15 @@ int main() {
             close(pipe_p2c[READ]);
             close(pipe_c2p[WRITE]);
 
+            int check = 0;
 //            printf("%s\n", arg);
-            int check = execlp(cmd, cmd, opt, NULL);
+            if (!strncmp(cmd, "cd", strlen("cd"))) {
+                check = execlp("pwd", "pwd", NULL);
+            } else {
+                int n = chdir(dir);
+//                printf("dir %s\n\n", dir);
+                check = execlp(cmd, cmd, opt, NULL);
+            }
             if (check < 0) {
                 perror("error");
                 close(pipe_p2c[WRITE]);
@@ -74,7 +89,6 @@ int main() {
             }
         } else if (pid > 0) {
             //parent
-//            printf("parent %d\n", pid);
             close(pipe_p2c[READ]);
             close(pipe_c2p[WRITE]);
             pid_t r = waitpid(pid, &status, 0); //子プロセスの終了待ち
@@ -88,7 +102,6 @@ int main() {
                 memset(buf, '\0', LEN);
                 read(pipe_c2p[READ], buf, LEN);
                 write(1, buf, strlen(buf));
-//                printf("child exit-code=%d\n", WEXITSTATUS(status));
             } else {
                 printf("child status=%04x\n", status);
             }

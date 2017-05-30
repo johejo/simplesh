@@ -1,6 +1,6 @@
 CC = gcc
 PROGRAM=simplesh
-CFLAGS = -Wall -O
+CFLAGS = -Wall
 OBJS = main.o
 $(PROGRAM) : $(OBJS)
 	$(CC) $(OBJS) -o $(PROGRAM)
